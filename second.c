@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.17 2000-08-05 13:21:42 gniibe Exp $
+/* $Id: second.c,v 1.18 2000-08-19 10:33:26 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -42,6 +42,13 @@ static unsigned long kernel_image = 0;	/* Avoid BSS */
 #define SD_MSG		42
 #define SD_KBDTBL	47
 
+static inline char *string_set (char *dest, const char *str)
+{
+  int len = strlen (str);
+  memcpy (dest, str, len);
+  return dest + len;
+}
+
 void
 start (unsigned long base)
 {
@@ -64,12 +71,9 @@ start (unsigned long base)
   /* XXX: list up images */
   /* XXX: check signature */
   /* Input command line */
-  /*
-    Is there default command line?
-    use it!
-   */
+  /* XXX: Is there default command line?  Use it! */
   put_string ("boot: ");
-  put_string ("first-image\n");	/* XXX: should handle commandline... */
+  put_string ("first-image\n");	/* XXX: should handle input commandline... */
 
   /* Structure of descriptor
    [ checksum 2byte ]
@@ -136,7 +140,7 @@ start (unsigned long base)
     /* Build string "mem=XXM" */
     mem_size = memory_size ();    
     mem_size >>= 20; /* In Mega-byte */
-    *cmdline++ = 'm'; *cmdline++ = 'e'; *cmdline++ = 'm'; *cmdline++ = '=';
+    cmdline = string_set (cmdline, "mem=");
     if (mem_size >= 100)
       {
 	*cmdline++ = digits[mem_size/100];
@@ -151,33 +155,42 @@ start (unsigned long base)
     *cmdline++ = 'M';
     *cmdline++ = ' ';
 
-    if (machine_type () == 0)	/* Unknown board */
-      {				/* Build string "sh_mv=unknown,0xXXXXXX,1" */
-	unsigned int io = io_base ();
-	int b31_24, b23_16, b15_08, b07_00;
+    switch (machine_type ())
+      {
+      case 0: /* Unknown board */
+	{			/* Build string "sh_mv=unknown,0xXXXXXX,1" */
+	  unsigned int io = io_base ();
+	  int b31_24, b23_16, b15_08, b07_00;
 
-	b31_24 = (io>>24)&0xff;
-	b23_16 = (io>>16)&0xff;
-	b15_08 = (io>>8)&0xff;
-	b07_00 = (io>>0)&0xff;
+	  b31_24 = (io>>24)&0xff;
+	  b23_16 = (io>>16)&0xff;
+	  b15_08 = (io>>8)&0xff;
+	  b07_00 = (io>>0)&0xff;
 
-	*cmdline++ = 's'; *cmdline++ = 'h'; *cmdline++ = '_'; *cmdline++ = 'm';
-	*cmdline++ = 'v'; *cmdline++ = '='; *cmdline++ = 'u'; *cmdline++ = 'n';
-	*cmdline++ = 'k'; *cmdline++ = 'n'; *cmdline++ = 'o'; *cmdline++ = 'w';
-	*cmdline++ = 'n'; *cmdline++ = ','; *cmdline++ = '0'; *cmdline++ = 'x';
-	*cmdline++ = highhex (b31_24); *cmdline++ = lowhex (b31_24);
-	*cmdline++ = highhex (b23_16); *cmdline++ = lowhex (b23_16);
-	*cmdline++ = highhex (b15_08); *cmdline++ = lowhex (b15_08);
-	*cmdline++ = highhex (b07_00); *cmdline++ = lowhex (b07_00);
-	*cmdline++ = ','; *cmdline++ = '1';
-	*cmdline++ = ' ';
+	  cmdline = string_set (cmdline, "sh_mv=unknown,0x");
+	  *cmdline++ = highhex (b31_24); *cmdline++ = lowhex (b31_24);
+	  *cmdline++ = highhex (b23_16); *cmdline++ = lowhex (b23_16);
+	  *cmdline++ = highhex (b15_08); *cmdline++ = lowhex (b15_08);
+	  *cmdline++ = highhex (b07_00); *cmdline++ = lowhex (b07_00);
+	  cmdline = string_set (cmdline, ",1 ");
+	  break;
+	}
+
+      case 1:
+	cmdline = string_set (cmdline, "sh_mv=CqREEK ");
+	break;
+
+      case 3:
+	cmdline = string_set (cmdline, "sh_mv=SolutionEngine ");
+	break;
       }
 
     if (serial_type () == 0)
-      memcpy (cmdline, "console=ttySC0,115200", 22);
+      cmdline = string_set (cmdline, "console=ttySC0,115200");
     else
-      memcpy (cmdline, "console=ttySC1,115200", 22);
+      cmdline = string_set (cmdline, "console=ttySC1,115200");
   }
+  *cmdline = '\0';		/* Terminate the string */
 
   asm volatile ("jmp @$r0; nop"
 		: /* no output */
@@ -306,13 +319,19 @@ get_sector_address (unsigned long sector_desc, int *devp, unsigned long *lbap)
 {
   unsigned long s;
   unsigned char *p = (unsigned char *)(sector_desc+base_pointer);
+  int len;
+
+  /* Number of sectors */
+  len = (int)p[4];
+  if (len == 0)
+    return 0;
 
   /* p[2]: drive number */
   if ((int)p[2] < 0xc0)
     /* XXX: should return error */
     put_string ("ERROR: Sector address is not in LBA\n");
 
-  *devp = (int)p[2] - 0xc0;
+  *devp = (int)p[2] & 0x0f;
 
   s = p[0] + (p[1]<<8) + (p[3]<<16);
 
@@ -334,8 +353,7 @@ get_sector_address (unsigned long sector_desc, int *devp, unsigned long *lbap)
   }
 #endif
 
-  /* Number of sectors */
-  return (int)p[4];
+  return len;
 }
 
 static int
