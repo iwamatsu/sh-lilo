@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.16 2000-08-05 13:05:10 gniibe Exp $
+/* $Id: second.c,v 1.17 2000-08-05 13:21:42 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -295,6 +295,9 @@ read_sectors (int dev, unsigned long lba, unsigned char *buf, int count)
 		  "r" (__sc6),  "r" (__sc7)
 		: "memory");
 
+  if (__sc0 < 0)
+    put_string ("ERROR: Sector read\n");
+
   return __sc0;
 }
 
@@ -305,7 +308,10 @@ get_sector_address (unsigned long sector_desc, int *devp, unsigned long *lbap)
   unsigned char *p = (unsigned char *)(sector_desc+base_pointer);
 
   /* p[2]: drive number */
-  /* XXX: should check it's LBA (> 0xc0) */
+  if ((int)p[2] < 0xc0)
+    /* XXX: should return error */
+    put_string ("ERROR: Sector address is not in LBA\n");
+
   *devp = (int)p[2] - 0xc0;
 
   s = p[0] + (p[1]<<8) + (p[3]<<16);
