@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.13 2000-07-22 03:19:55 gniibe Exp $
+/* $Id: second.c,v 1.14 2000-07-22 04:35:58 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -17,6 +17,7 @@ static void put_string (unsigned char *);
 static int get_sector_address (unsigned long, int *, unsigned long *);
 static int load_sectors (unsigned long, unsigned long);
 static int read_sectors (int, unsigned long, unsigned char *, int);
+static int load_sectors_with_maps (int, int, unsigned long *);
 
 static unsigned long base_pointer = 0;	/* Avoid BSS */
 static unsigned long kernel_image = 0;	/* Avoid BSS */
@@ -79,39 +80,15 @@ start (unsigned long base)
 
   kernel_image = base_pointer + 0x10000;
   {
-    int dev;
-    unsigned long lba;
-    unsigned long desc = 0x3200+2+16+16+4+5; /* kernel image */
-    int i;
+    int desc = 0x3200+2+16+16+4+5; /* kernel image */
 
     /* Magic 2 sectors? command line and keyboad table, perhaps */
-    load_sectors (desc, 0x3000);
-    i = 2;
-    goto loop_read_sectors;	/* Ugly Ugly.. */
+    desc = load_sectors_with_maps (desc, 2, &kernel_image); /* Magic #2 */
+    put_string (".");
 
     while (desc != 0)
       {
-	int count;
-
-	if (load_sectors (desc, 0x3000) < 0)
-	  break;
-
-	for (i=0; i<505; i+=5)
-	  {
-	  loop_read_sectors:
-	    if ((count = get_sector_address (0x3000+i, &dev, &lba)) == 0)
-	      {
-		desc = 0;
-		break;
-	      }
-
-	    read_sectors (dev, lba, (unsigned char *)kernel_image, count);
-	    kernel_image += count*512;
-	  }
-
-	if (desc)
-	  desc = 0x3000+505;
-
+	desc = load_sectors_with_maps (desc, 0, &kernel_image);
 	put_string (".");
       }
   }
@@ -123,7 +100,7 @@ start (unsigned long base)
 
     put_string ("DUMP: ");
     for (i=0; i<16; i++)
-      printouthex (*(unsigned char *)(base_pointer+0x10400+i));
+      printouthex (*(unsigned char *)(base_pointer+0x10000+i));
     put_string ("\n");
   }
 #endif
@@ -146,6 +123,31 @@ start (unsigned long base)
 		: /* no output */
 		: "z" (base_pointer + 0x10000));
 }
+
+static int
+load_sectors_with_maps (int desc, int offset, unsigned long *buf_p)
+{
+  int dev;
+  unsigned long lba;
+  int i, count;
+
+  /* Load the map at 0x3000 */
+  if (load_sectors (desc, 0x3000) < 0)
+    return 0;
+
+  for (i = offset*5; i<505; i+=5)
+    {
+      if ((count = get_sector_address (0x3000+i, &dev, &lba)) == 0)
+	return 0;
+
+      read_sectors (dev, lba, (unsigned char *)*buf_p, count);
+      *buf_p += count*512;
+    }
+
+  /* There's next map */
+  return 0x3000+505;
+}
+
 
 static void inline
 put_string_1 (unsigned char *str, long len)
