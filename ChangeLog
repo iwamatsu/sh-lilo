@@ -1,0 +1,44 @@
+2000-11-26  NIIBE Yutaka  <gniibe@m17n.org>
+
+	* first.S (done): Flush the cache.
+	* second.c (start): Call cache_flush.
+	(cache_flush): New function.
+
+2000-11-25  NIIBE Yutaka  <gniibe@m17n.org>
+
+	* first.S: Don't put '$' for register spec.
+	* second.c (start): Don't put '$' for register spec.
+	(machine_type, memory_size, io_base, put_string_1, read_sectors): 
+	Likewise.
+	* second.lds: Use new tool chain's ldscript.
+	* defs.h: Add declaration of memcpy.
+	
+2000-09-09  NIIBE Yutaka  <gniibe@m17n.org>
+
+	* first.S (real_start): Set argument 0 for cache enable call.
+
+2000-08-19  NIIBE Yutaka  <gniibe@m17n.org>
+
+	* second.c (get_sector_address): Bug fix for # of sector == 0.
+	(start): Support machine types of CqREEK and SolutionEngine.
+
+	* first.S (load_sector_address): Bug fix for checking LBA.
+	(real_start): Call "enable cache" BIOS feature.
+
+2000-08-05  NIIBE Yutaka  <gniibe@m17n.org>
+
+	* Makefile (first.o): Added -traditional for "'" in comments.
+
+	* second.c (machine_type, serial_type, memory_size, io_base): New
+	functions.
+	(start): Implement kernel command line handling a bit.
+	(read_sectors): Emit error message.
+	(get_sector_address): Emit error message.
+
+	* first.S (read_a_sector): Implement error handling.
+	(load_sector_address): Check if it's LBA.
+
+2000-07-22  NIIBE Yutaka  <gniibe@m17n.org>
+
+	* second.c (start): Don't load two magic sectors at the memory
+	of executable image.
