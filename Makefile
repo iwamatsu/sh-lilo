@@ -26,7 +26,7 @@ second.o: second.c
 	$(CC) -O2 -g -ml -m3 -Wall -pipe -fpic -c second.c
 
 string.o: string.c
-	$(CC) -O2 -g -ml -m3 -Wall -pipe -c string.c
+	$(CC) -O2 -g -ml -m3 -Wall -pipe -fpic -c string.c
 
 clean:
 	rm -f *.o boot.b *.exe *.bin

@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.9 2000-07-20 23:32:52 gniibe Exp $
+/* $Id: second.c,v 1.10 2000-07-21 10:58:47 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -77,7 +77,7 @@ start (unsigned long base)
   put_string ("Loading ");
   put_string ((char *)(base_pointer+0x3200+2)); /* Image name */
 
-  kernel_image = base_pointer + 0x10000 - 0x200*2; /* Magic 2 sectors */
+  kernel_image = base_pointer + 0x10000;
   {
     int dev;
     unsigned long lba;
@@ -137,7 +137,7 @@ start (unsigned long base)
 
   asm volatile ("jmp @$r0; nop"
 		: /* no output */
-		: "z" (base_pointer + 0x10000));
+		: "z" (base_pointer + 0x10000 + 0x400)); /* Magic 2 sectors */
 }
 
 static void inline
