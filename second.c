@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.3 2000-07-20 11:38:18 gniibe Exp $
+/* $Id: second.c,v 1.4 2000-07-20 11:40:23 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -14,7 +14,9 @@
 #include "defs.h"
 
 static void put_string (unsigned char *);
+static int get_sector_address (unsigned long, int *, unsigned long);
 static int load_sectors (unsigned long, unsigned long);
+static int read_sectors (int, unsigned long, unsigned char *, int);
 
 static unsigned long base_pointer = 0;	/* Avoid BSS */
 static unsigned long kernel_image = 0;	/* Avoid BSS */
@@ -70,7 +72,7 @@ start (unsigned long base)
    ] * 19
   */
 
-  put_string (base_pointer+0x3200+2); /* Image name */
+  put_string ((char *)(base_pointer+0x3200+2)); /* Image name */
 
   kernel_image = base_pointer + 0x10000;
   {
@@ -116,7 +118,7 @@ put_string (unsigned char *str)
 {
   register long __sc0 __asm__ ("$r0") = 0; /* OUTPUT */
   register long __sc4 __asm__ ("$r4") = (long) str;
-  register long __sc4 __asm__ ("$r5") = (long) strlen(str); /* For New BIOS */
+  register long __sc5 __asm__ ("$r5") = (long) strlen(str); /* For New BIOS */
 
   asm volatile  ("trapa	#0x3F; nop"
 		 : "=z" (__sc0)
