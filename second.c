@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.12 2000-07-21 12:11:49 gniibe Exp $
+/* $Id: second.c,v 1.13 2000-07-22 03:19:55 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -82,16 +82,23 @@ start (unsigned long base)
     int dev;
     unsigned long lba;
     unsigned long desc = 0x3200+2+16+16+4+5; /* kernel image */
+    int i;
+
+    /* Magic 2 sectors? command line and keyboad table, perhaps */
+    load_sectors (desc, 0x3000);
+    i = 2;
+    goto loop_read_sectors;	/* Ugly Ugly.. */
 
     while (desc != 0)
       {
-	int i, count;
+	int count;
 
 	if (load_sectors (desc, 0x3000) < 0)
 	  break;
 
 	for (i=0; i<505; i+=5)
 	  {
+	  loop_read_sectors:
 	    if ((count = get_sector_address (0x3000+i, &dev, &lba)) == 0)
 	      {
 		desc = 0;
@@ -137,7 +144,7 @@ start (unsigned long base)
 
   asm volatile ("jmp @$r0; nop"
 		: /* no output */
-		: "z" (base_pointer + 0x10000 + 0x400)); /* Magic 2 sectors */
+		: "z" (base_pointer + 0x10000));
 }
 
 static void inline
