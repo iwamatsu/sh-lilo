@@ -1,7 +1,7 @@
 OUTPUT_FORMAT("elf32-shl", "elf32-shl",
 	      "elf32-shl")
 OUTPUT_ARCH(sh)
-ENTRY(_start)
+ENTRY(start)
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
