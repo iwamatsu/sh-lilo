@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.19 2000-08-19 10:34:50 gniibe Exp $
+/* $Id: second.c,v 1.20 2000-11-25 14:05:39 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -225,7 +225,7 @@ load_sectors_with_maps (int desc, int offset, unsigned long *buf_p)
 static int
 machine_type (void)
 {
-  register long __sc0 __asm__ ("$r0") = 3; /* FEATURE QUERY */
+  register long __sc0 __asm__ ("r0") = 3; /* FEATURE QUERY */
 
   asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
@@ -238,7 +238,7 @@ machine_type (void)
 static int
 serial_type (void)
 {
-  register long __sc0 __asm__ ("$r0") = 3; /* FEATURE QUERY */
+  register long __sc0 __asm__ ("r0") = 3; /* FEATURE QUERY */
 
   asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
@@ -251,7 +251,7 @@ serial_type (void)
 static int
 memory_size (void)
 {
-  register long __sc0 __asm__ ("$r0") = 4; /* MEMORY SIZE */
+  register long __sc0 __asm__ ("r0") = 4; /* MEMORY SIZE */
 
   asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
@@ -264,7 +264,7 @@ memory_size (void)
 static int
 io_base (void)
 {
-  register long __sc0 __asm__ ("$r0") = 5; /* IO BASE */
+  register long __sc0 __asm__ ("r0") = 5; /* IO BASE */
 
   asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
@@ -277,9 +277,9 @@ io_base (void)
 static void inline
 put_string_1 (unsigned char *str, long len)
 {
-  register long __sc0 __asm__ ("$r0") = 0; /* OUTPUT */
-  register long __sc4 __asm__ ("$r4") = (long) str;
-  register long __sc5 __asm__ ("$r5") = (long) len; /* For New BIOS */
+  register long __sc0 __asm__ ("r0") = 0; /* OUTPUT */
+  register long __sc4 __asm__ ("r4") = (long) str;
+  register long __sc5 __asm__ ("r5") = (long) len; /* For New BIOS */
 
   asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
@@ -297,11 +297,11 @@ put_string (unsigned char *str)
 static int
 read_sectors (int dev, unsigned long lba, unsigned char *buf, int count)
 {
-  register long __sc0 __asm__ ("$r0") = 2; /* READ SECTORS */
-  register long __sc4 __asm__ ("$r4") = (long) dev;
-  register long __sc5 __asm__ ("$r5") = (long) lba;
-  register long __sc6 __asm__ ("$r6") = (long) buf;
-  register long __sc7 __asm__ ("$r7") = (long) count;
+  register long __sc0 __asm__ ("r0") = 2; /* READ SECTORS */
+  register long __sc4 __asm__ ("r4") = (long) dev;
+  register long __sc5 __asm__ ("r5") = (long) lba;
+  register long __sc6 __asm__ ("r6") = (long) buf;
+  register long __sc7 __asm__ ("r7") = (long) count;
 
   asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
@@ -373,6 +373,7 @@ load_sectors (unsigned long sector_desc, unsigned long mem)
   return -1;
 }
 
+#if 0
 static void
 printouthex(int x)
 {
@@ -385,3 +386,4 @@ printouthex(int x)
 
   put_string (z);
 }
+#endif
