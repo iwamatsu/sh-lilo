@@ -1,5 +1,44 @@
 This is SuperH boot.b for LILO.
+You can use this program with LILO as /boot/boot.b.
+This program may be distributed under GNU GPL.
 
-				Niibe Yutaka
-				Nezu Bunkyo-ku Tokyo
-				JAPAN
+					Niibe Yutaka
+					Nezu Bunkyo-ku Tokyo
+					JAPAN
+					July 2000
+
+* Use of LILO in cross development environment
+
+Here's lilo.conf which I use:
+------------------------------
+linear
+compact
+# Cross LILO
+# Actually, it's /dev/hda
+boot = /dev/hdc
+disk = /dev/hdc
+  bios=0x80
+#
+delay = 30
+vga = normal
+image = /boot/vmlinuz
+	label = linux
+	root = /dev/hda1
+	read-only
+------------------------------
+
+In my cross environment, Compact Flash card is accessed as "/dev/hdc"
+at the host.  This disk is shown as "/dev/hda" at the target.  I
+specify "boot = /dev/hdc" to write the MBR and `map' file in the disk
+of /dev/hdc (at the host).  However, since the disk is shown as
+/dev/hda at the target machine, special care is needed (or else, 
+/dev/hdc would be accessed in the target too).  That's the trick
+two lines: "disk = /dev/hdc ... bios = 0x80", where 0x80 means /dev/hda
+for BIOS.  With these lines, disk geometry uses 0x80 (/dev/hda).
+
+If you mount /dev/hdc at /mnt, the invocation of LILO is:
+
+	# lilo -r /mnt
+
+You need to have /mnt/etc/lilo.conf and /mnt/dev/hdc, /mnt/dev/hda1 and
+other files in the target disk under /mnt.
