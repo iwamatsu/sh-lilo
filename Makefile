@@ -16,7 +16,7 @@ second.bin: second.exe
 first.exe: first.o
 	$(LD) -EL -e start first.o -o first.exe -Ttext 0xac200000
 
-second.exe: second.o
+second.exe: second.o string.o
 	$(LD) -T ldscript -EL -e start second.o -o second.exe -Ttext 0xac201000
 
 first.o: first.S
@@ -24,6 +24,9 @@ first.o: first.S
 
 second.o: second.c
 	$(CC) -O2 -g -ml -m3 -Wall -pipe -c second.c
+
+string.o: string.c
+	$(CC) -O2 -g -ml -m3 -Wall -pipe -c string.c
 
 clean:
 	rm -f *.o boot.b *.exe *.bin
