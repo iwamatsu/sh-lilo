@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.8 2000-07-20 23:25:16 gniibe Exp $
+/* $Id: second.c,v 1.9 2000-07-20 23:32:52 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -120,6 +120,20 @@ start (unsigned long base)
     put_string ("\n");
   }
 #endif
+
+  /* XXX: kernel paramerter setting */
+  {
+    unsigned long parm = base_pointer - 0x200000 + 0x1000;
+
+    *(long *)parm      = 0;
+    *(long *)(parm+4)  = 0;
+    *(long *)(parm+8)  = 0x0301;
+    *(long *)(parm+12) = 1;
+    *(long *)(parm+16) = 0;
+    *(long *)(parm+20) = 0;
+    *(long *)(parm+24) = 0;
+    memcpy ((void *)(parm+256), "console=ttySC0,115200", 22);
+  }
 
   asm volatile ("jmp @$r0; nop"
 		: /* no output */
