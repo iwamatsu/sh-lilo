@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.14 2000-07-22 04:35:58 gniibe Exp $
+/* $Id: second.c,v 1.15 2000-07-23 12:35:43 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -82,8 +82,8 @@ start (unsigned long base)
   {
     int desc = 0x3200+2+16+16+4+5; /* kernel image */
 
-    /* Magic 2 sectors? command line and keyboad table, perhaps */
-    desc = load_sectors_with_maps (desc, 2, &kernel_image); /* Magic #2 */
+    /* Skip two sectors: Fallback command line and options */
+    desc = load_sectors_with_maps (desc, 2, &kernel_image);
     put_string (".");
 
     while (desc != 0)
@@ -109,13 +109,15 @@ start (unsigned long base)
   {
     unsigned long parm = base_pointer - 0x200000 + 0x1000;
 
-    *(long *)parm      = 0;
-    *(long *)(parm+4)  = 0;
-    *(long *)(parm+8)  = 0x0301;
-    *(long *)(parm+12) = 1;
-    *(long *)(parm+16) = 0;
-    *(long *)(parm+20) = 0;
-    *(long *)(parm+24) = 0;
+    *(long *)parm      = 0;	/* Read only mount? */
+    *(long *)(parm+4)  = 0;	/* RAMDISK Flags */
+    *(long *)(parm+8)  = 0x0301; /* Root device */
+    *(long *)(parm+12) = 1;	/* Loader type */
+    *(long *)(parm+16) = 0;	/* Initrd start */
+    *(long *)(parm+20) = 0;	/* Initrd size */
+    *(long *)(parm+24) = 0;	/* Not defined yet */
+
+    /* XXX: Should take the line from command line sector... */
     memcpy ((void *)(parm+256), "console=ttySC0,115200", 22);
   }
 

@@ -1,4 +1,5 @@
 This is SuperH boot.b for LILO.
+
 You can use this program with LILO as /boot/boot.b.
 This program may be distributed under GNU GPL.
 
@@ -27,13 +28,16 @@ image = /boot/vmlinuz
 	read-only
 ------------------------------
 
-In my cross environment, Compact Flash card is accessed as "/dev/hdc"
-at the host.  This disk is shown as "/dev/hda" at the target.  I
-specify "boot = /dev/hdc" to write the MBR and `map' file in the disk
-of /dev/hdc (at the host).  However, since the disk is shown as
-/dev/hda at the target machine, special care is needed (or else, 
-/dev/hdc would be accessed in the target too).  That's the trick
-two lines: "disk = /dev/hdc ... bios = 0x80", where 0x80 means /dev/hda
+As of SH BIOS 0.3, only LBA access is supported.  So, you must need
+"linear" line.
+
+In my cross environment, Compact Flash card is accessed as the device
+/dev/hdc at the host.  This disk is shown as /dev/hda at the target
+side.  I specify "boot = /dev/hdc" to write the MBR and `map' file in
+the disk of /dev/hdc (at the host).  However, since the disk is shown
+as /dev/hda at the target machine, special care is needed (or else,
+/dev/hdc would be accessed in the target too).  That's the trick two
+lines: "disk = /dev/hdc ... bios = 0x80", where 0x80 means /dev/hda
 for BIOS.  With these lines, disk geometry uses 0x80 (/dev/hda).
 
 If you mount /dev/hdc at /mnt, the invocation of LILO is:
