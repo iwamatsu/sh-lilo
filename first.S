@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.12 2000-08-19 10:16:10 gniibe Exp $
+/* $Id: first.S,v 1.13 2000-08-19 11:19:32 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -125,6 +125,10 @@ real_start:
 	!
 	mov	#0x10, $r13		! buffer number
 	!
+	/* Enable cache */
+	mov	#6, $r0			! Cache "on"
+	trapa	#0x3f
+	!
 	/* Output message "L" */
 	mova	message, $r0
 	mov	$r0, $r4
@@ -136,7 +140,7 @@ real_start:
 	mov	#52, $r11	! #52: desc# of second stage loader
 loop:	mov	$r11, $r4
 	bsr	load_sector_address	! get $r4 (=dev) and $r5 (=lba)
-	 add	$r12, $r4	! desc# --> address of descriptor
+	 add	$r12, $r4		! desc# --> address of descriptor
 	bt	done
 	!
 	mov	$r13, $r6
