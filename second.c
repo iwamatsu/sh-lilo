@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.20 2000-11-25 14:05:39 gniibe Exp $
+/* $Id: second.c,v 1.21 2000-11-25 14:05:57 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -193,7 +193,7 @@ start (unsigned long base)
     *cmdline = '\0';		/* Terminate the string */
   }
 
-  asm volatile ("jmp @$r0; nop"
+  asm volatile ("jmp @r0; nop"
 		: /* no output */
 		: "z" (base_pointer + 0x10000));
 }

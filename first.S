@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.14 2000-09-09 12:37:25 gniibe Exp $
+/* $Id: first.S,v 1.15 2000-11-25 14:08:39 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -38,7 +38,7 @@
 	.global start
 start:
 	bra	real_start
-	.byte	3	! This becomes "mov $r0, $r12" with next "l"
+	.byte	3	! This becomes "mov r0, r12" with next "l"
 	!
 	.ascii  "lba"	! special marker for LBA32
 	!
@@ -112,54 +112,54 @@ d_addr:				! second stage sector addresses
 	.align	2
 real_start:
 	/* Get base pointer, to be position independent */
-	mova	next, $r0
-	mov	#0x02, $r1
-	shll8	$r1
-	sub	$r1, $r0
-	mov	$r0, $r12		! Base pointer
+	mova	next, r0
+	mov	#0x02, r1
+	shll8	r1
+	sub	r1, r0
+	mov	r0, r12		! Base pointer
 	!
-	mov	#0x10, $r1
-	shll8	$r1
-	mov	$r12, $r15
-	add	$r1, $r15		! Setup stack pointer
+	mov	#0x10, r1
+	shll8	r1
+	mov	r12, r15
+	add	r1, r15		! Setup stack pointer
 	!
-	mov	#0x10, $r13		! buffer number
+	mov	#0x10, r13		! buffer number
 	!
 	/* Enable cache */
-	mov	#6, $r0			! Cache "on"
-	mov	#0, $r4
+	mov	#6, r0			! Cache "on"
+	mov	#0, r4
 	trapa	#0x3f
 	!
 	/* Output message "L" */
-	mova	message, $r0
-	mov	$r0, $r4
-	mov	#1, $r5
-	mov	#0, $r0			! Serial Output
+	mova	message, r0
+	mov	r0, r4
+	mov	#1, r5
+	mov	#0, r0			! Serial Output
 	trapa	#0x3f
 	!
 	/* Load second stage loader */
-	mov	#52, $r11	! #52: desc# of second stage loader
-loop:	mov	$r11, $r4
-	bsr	load_sector_address	! get $r4 (=dev) and $r5 (=lba)
-	 add	$r12, $r4		! desc# --> address of descriptor
+	mov	#52, r11	! #52: desc# of second stage loader
+loop:	mov	r11, r4
+	bsr	load_sector_address	! get r4 (=dev) and r5 (=lba)
+	 add	r12, r4		! desc# --> address of descriptor
 	bt	done
 	!
-	mov	$r13, $r6
-	shll8	$r6
+	mov	r13, r6
+	shll8	r6
 	bsr	read_a_sector
-	 add	$r12, $r6	! buffer number -> buffer address
+	 add	r12, r6	! buffer number -> buffer address
 	!
-	add	#2, $r13	! buffer # += 2
+	add	#2, r13	! buffer # += 2
 	bra	loop
-	 add	#5, $r11	! next desc# is +5
+	 add	#5, r11	! next desc# is +5
 
 done:
 	/* Jump to the second loader */
-	mov	#0x10, $r0
-	shll8	$r0
-	add	$r12, $r0	! Get the address into $r0
+	mov	#0x10, r0
+	shll8	r0
+	add	r12, r0	! Get the address into r0
 	jmp	@r0
-	 mov	$r12, $r4	! First argument is base pointer
+	 mov	r12, r4	! First argument is base pointer
 
 	.align	2
 message:
@@ -171,71 +171,71 @@ message:
  *     Read the sector descripter (5-byte tuple), and translate
  *     it as device number and lba.  Set T flag if it's NULL.
  *
- * INPUT: $r4 (pointer to descripter (5-byte long, not aligned)
- * OUTPUT: $r4 (DEVICE #), $r5 (LBA) and T register (T when done)
- * Clobbers: $r0, $r1, $r2, $r3
+ * INPUT: r4 (pointer to descripter (5-byte long, not aligned)
+ * OUTPUT: r4 (DEVICE #), r5 (LBA) and T register (T when done)
+ * Clobbers: r0, r1, r2, r3
  */
 load_sector_address:
-	mov.b	@$r4+, $r0
-	extu.b	$r0, $r0
-	mov.b	@$r4+, $r1
-	extu.b	$r1, $r1
-	mov.b	@$r4+, $r2
-	extu.b	$r2, $r2
-	mov.b	@$r4+, $r3
-	extu.b	$r3, $r3
+	mov.b	@r4+, r0
+	extu.b	r0, r0
+	mov.b	@r4+, r1
+	extu.b	r1, r1
+	mov.b	@r4+, r2
+	extu.b	r2, r2
+	mov.b	@r4+, r3
+	extu.b	r3, r3
 	!
-	shll8	$r3
-	or	$r3, $r1
-	shll8	$r1
-	or	$r0, $r1
-	mov	$r1, $r5
-	mov.b	@$r4, $r0
-	cmp/eq	#0, $r0
+	shll8	r3
+	or	r3, r1
+	shll8	r1
+	or	r0, r1
+	mov	r1, r5
+	mov.b	@r4, r0
+	cmp/eq	#0, r0
 	bt	1f		! NULL (end of descriptor)
 	!
 	/* Check if it's really LBA... */
-	mov	$r2, $r0
-	and	#0x0F, $r0	! Get device number
-	mov	#0xc0, $r3
-	extu.b	$r3, $r3
-	cmp/hi	$r2, $r3
+	mov	r2, r0
+	and	#0x0F, r0	! Get device number
+	mov	#0xc0, r3
+	extu.b	r3, r3
+	cmp/hi	r2, r3
 	bf	1f		! Unset T
 	!
 	/* It's not LBA!! */
-	mova	not_lba_message, $r0
-	mov	$r0, $r4
-	mov	#36, $r5
-	mov	#0, $r0			! Serial Output
+	mova	not_lba_message, r0
+	mov	r0, r4
+	mov	#36, r5
+	mov	#0, r0			! Serial Output
 	trapa	#0x3f
 	sett			! End of descriptor
 	!
 1:	rts
-	 mov	$r0, $r4	! device number
+	 mov	r0, r4	! device number
 
 /*
  * READ a sector
- * INPUT: $r4 (DEVICE #), $r5 (LBA), $r6 (BUFFER ADDRESS)
- * OUTPUT: $r0 (RESULT)
+ * INPUT: r4 (DEVICE #), r5 (LBA), r6 (BUFFER ADDRESS)
+ * OUTPUT: r0 (RESULT)
  *
  * Invoke BIOS call READ_SECTORS with number_of_sectors=1.
  */
 read_a_sector:
-	mov	#2, $r0			! READ SECTORS
-	mov	#1, $r7			! number of sectors
+	mov	#2, r0			! READ SECTORS
+	mov	#1, r7			! number of sectors
 	trapa	#0x3f
 	!
-	tst	$r0, $r0
+	tst	r0, r0
 	bt	1f
 	! /* ERROR */
-	mova	read_error_message, $r0
-	mov	$r0, $r4
-	mov	#19, $r5
-	mov	#0, $r0			! Serial Output
+	mova	read_error_message, r0
+	mov	r0, r4
+	mov	#19, r5
+	mov	#0, r0			! Serial Output
 	trapa	#0x3f
 	! /* Go to the monitor */
-	mov	#0, $r0
-	jmp	@$r0
+	mov	#0, r0
+	jmp	@r0
 	 nop
 	!
 1:	rts
