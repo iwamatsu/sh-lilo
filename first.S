@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.6 2000-07-19 13:01:26 gniibe Exp $
+/* $Id: first.S,v 1.7 2000-07-19 13:17:36 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -129,7 +129,7 @@ done:
 
 	.align	2
 message:
-	.string "L\n"
+	.string "L"
 
 	.align	2
 /*
