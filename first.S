@@ -1,4 +1,6 @@
-/* $Id: first.S,v 1.5 2000-07-18 12:59:56 gniibe Exp $
+/* $Id: first.S,v 1.6 2000-07-19 13:01:26 gniibe Exp $
+ *
+ * Primary boot loader
  *
  *  lilo/arch/sh/first.S
  *
@@ -10,22 +12,19 @@
  */	
 
 /*
- *  [ First Loader         ]
- *  [ First Descriptor     ]
- *  [ Second Descriptor    ]
- *  [ Default Command Line ]
- *  [ Greeting Message     ]
- *  [ Keyboard Translation ]
+ * Memory map:
+ *  [ First Loader         ] 512
+ *  [ Stack                ] 4096-512
+ *  [ Second Loader        ] 4KB
+ *  [ Reserved             ] 4KB
+ *  [ MAP load area        ] 512
+ *  [ Descriptor table 1/2 ] 512
+ *  [ Descriptor table 2/2 ] 512
+ *  [ Default Command Line ] 512
+ *  [ Keyboard Translation ] 512
+ *  [ Greeting Message     ] 512
  *  [ Reserved             ]
  *  [ Reserved             ]
- *  [ Second Loader (1)    ]
- *  [ Second Loader (2)    ]
- *  [ Second Loader (3)    ]
- *  [ Second Loader (4)    ]
- *  [ Second Loader (5)    ]
- *  [ Second Loader (6)    ]
- *  [ Second Loader (7)    ]
- *  [ Second Loader (8)    ]
  *
  */
 	.global start
@@ -88,90 +87,26 @@ d_addr:				! second stage sector addresses
 
 	.align	2
 real_start:
+	mova	next, $r0
+	mov	#0x02, $r1
+	shll8	$r1
+	sub	$r1, $r0
+	mov	$r0, $r12		! Base pointer
+	!
+	mov	#0x10, $r1
+	shll8	$r1
+	mov	$r12, $r15
+	add	$r1, $r15		! Setup stack pointer
+	!
+	mov	#0x10, $r13		! buffer number
+	!
 	mova	message, $r0
 	mov	$r0, $r4
 	mov	#0, $r0			! Serial Output
 	trapa	#0x3f
 	 nop
 	!
-	mova	next, $r0
-	mov	#0x02, $r1
-	shll8	$r1
-	sub	$r1, $r0
-	mov	$r0, $r12	! base pointer
-	mov	#0x02, $r13	! buffer number
-	!
-	mov	#24, $r4	! First descriptor
-	bsr	load_sector_address
-	 add	$r12, $r4
-	mov	$r13, $r6
-	shll8	$r6
-	bsr	read_a_sector
-	 add	$r12, $r6
-	add	#2, $r13
-	!
-	mov	#29, $r4	! Second descriptor
-	bsr	load_sector_address
-	 add	$r12, $r4
-	mov	$r13, $r6
-	shll8	$r6
-	bsr	read_a_sector
-	 add	$r12, $r6
-	add	#2, $r13
-	!
-	mov	#34, $r4	! Default command line
-	bsr	load_sector_address
-	 add	$r12, $r4
-	mov	$r13, $r6
-	shll8	$r6
-	bsr	read_a_sector
-	 add	$r12, $r6
-	add	#2, $r13
-	!
-	! Check length & prompt
-	!
-	mov	#39, $r4
-	add	$r12, $r4
-	mov.b	@$r4, $r0	! prompt
-	! XXX: emit prompt...
-	mov	#40, $r4
-	add	$r12, $r4
-	mov.w	@$r4, $r0	! greeting message length
-	cmp/eq	#0, $r0
-	bt	no_message
-	!
-	mov	#42, $r4	! Greeting message
-	bsr	load_sector_address	! set $r4 (=dev) and $r5 (=lba)
-	 add	$r12, $r4
-	mov	$r13, $r6
-	shll8	$r6
-	bsr	read_a_sector
-	 add	$r12, $r6
-#if 0
-	!
-	! XXX: Do we output message here?  Is it a work of second loader?
-	!
-	mov	#8, $r4
-	shll8	$r4
-	add	$r12, $r4
-	mov	#0, $r0			! Serial Output
-	trapa	#0x3f
-	 nop
-#endif
-
-no_message:
-	add	#2, $r13
-	!
-	mov	#47, $r4	! Keyboard translation table
-	bsr	load_sector_address	! set $r4 (=dev) and $r5 (=lba)
-	 add	$r12, $r4
-	mov	$r13, $r6
-	shll8	$r6
-	bsr	read_a_sector
-	 add	$r12, $r6
-	add	#6, $r13
-	!
-	mov	#52, $r11	! second stage loader
+	mov	#52, $r11		! Second stage loader
 loop:	mov	$r11, $r4
 	bsr	load_sector_address	! set $r4 (=dev) and $r5 (=lba)
 	 add	$r12, $r4
@@ -186,11 +121,11 @@ loop:	mov	$r11, $r4
 
 done:
 	! jump to the second loader
-	mov	#16, $r0
+	mov	#0x10, $r0
 	shll8	$r0
 	add	$r12, $r0
 	jmp	@r0
-	 nop
+	 mov	$r12, $r4
 
 	.align	2
 message:
