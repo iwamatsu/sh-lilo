@@ -20,7 +20,7 @@ second.exe: second.o string.o
 	$(LD) -T second.lds -EL second.o string.o -o second.exe -Ttext 0x8c201000
 
 first.o: first.S
-	$(CC) -O2 -g -ml -m3 -pipe -c first.S
+	$(CC) -O2 -g -ml -m3 -pipe -traditional -c first.S
 
 second.o: second.c
 	$(CC) -O2 -g -ml -m3 -Wall -pipe -fpic -c second.c

@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.10 2000-08-05 11:39:21 gniibe Exp $
+/* $Id: first.S,v 1.11 2000-08-05 13:07:08 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -229,7 +229,7 @@ read_a_sector:
 	trapa	#0x3f
 	! /* Go to the monitor */
 	mov	#0, $r0
-	jmp	$r0
+	jmp	@$r0
 	 nop
 	!
 1:	rts

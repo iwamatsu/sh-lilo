@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.15 2000-07-23 12:35:43 gniibe Exp $
+/* $Id: second.c,v 1.16 2000-08-05 13:05:10 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -18,6 +18,17 @@ static int get_sector_address (unsigned long, int *, unsigned long *);
 static int load_sectors (unsigned long, unsigned long);
 static int read_sectors (int, unsigned long, unsigned char *, int);
 static int load_sectors_with_maps (int, int, unsigned long *);
+
+static int machine_type (void);
+static int serial_type (void);
+static int memory_size (void);
+static int io_base (void);
+
+static const char hexchars[] = "0123456789abcdef";
+#define digits hexchars		/* 10base is same for 16base (up to 10) */
+static inline char highhex (int x) {  return hexchars[(x >> 4) & 0xf];  }
+static inline char lowhex (int x) {  return hexchars[x & 0xf];  }
+static void printouthex (int);
 
 static unsigned long base_pointer = 0;	/* Avoid BSS */
 static unsigned long kernel_image = 0;	/* Avoid BSS */
@@ -108,17 +119,64 @@ start (unsigned long base)
   /* XXX: kernel paramerter setting */
   {
     unsigned long parm = base_pointer - 0x200000 + 0x1000;
+    char *cmdline = (char *)(parm+256);
+    int mem_size;
 
-    *(long *)parm      = 0;	/* Read only mount? */
+    *(long *)parm      = 1;	/* Read only mount? */
     *(long *)(parm+4)  = 0;	/* RAMDISK Flags */
-    *(long *)(parm+8)  = 0x0301; /* Root device */
-    *(long *)(parm+12) = 1;	/* Loader type */
+    *(long *)(parm+8)  = 0x0301; /* Root device: XXX should get from cls.. */
+    *(long *)(parm+12) = 1;	/* Loader type (LILO = 1) */
     *(long *)(parm+16) = 0;	/* Initrd start */
     *(long *)(parm+20) = 0;	/* Initrd size */
     *(long *)(parm+24) = 0;	/* Not defined yet */
 
     /* XXX: Should take the line from command line sector... */
-    memcpy ((void *)(parm+256), "console=ttySC0,115200", 22);
+
+    /* Query to BIOS and build the command line string */
+    /* Build string "mem=XXM" */
+    mem_size = memory_size ();    
+    mem_size >>= 20; /* In Mega-byte */
+    *cmdline++ = 'm'; *cmdline++ = 'e'; *cmdline++ = 'm'; *cmdline++ = '=';
+    if (mem_size >= 100)
+      {
+	*cmdline++ = digits[mem_size/100];
+	mem_size = mem_size % 100;
+      }
+    if (mem_size >= 10)
+      {
+	*cmdline++ = digits[mem_size/10];
+	mem_size = mem_size % 10;
+      }
+    *cmdline++ = digits[mem_size];
+    *cmdline++ = 'M';
+    *cmdline++ = ' ';
+
+    if (machine_type () == 0)	/* Unknown board */
+      {				/* Build string "sh_mv=unknown,0xXXXXXX,1" */
+	unsigned int io = io_base ();
+	int b31_24, b23_16, b15_08, b07_00;
+
+	b31_24 = (io>>24)&0xff;
+	b23_16 = (io>>16)&0xff;
+	b15_08 = (io>>8)&0xff;
+	b07_00 = (io>>0)&0xff;
+
+	*cmdline++ = 's'; *cmdline++ = 'h'; *cmdline++ = '_'; *cmdline++ = 'm';
+	*cmdline++ = 'v'; *cmdline++ = '='; *cmdline++ = 'u'; *cmdline++ = 'n';
+	*cmdline++ = 'k'; *cmdline++ = 'n'; *cmdline++ = 'o'; *cmdline++ = 'w';
+	*cmdline++ = 'n'; *cmdline++ = ','; *cmdline++ = '0'; *cmdline++ = 'x';
+	*cmdline++ = highhex (b31_24); *cmdline++ = lowhex (b31_24);
+	*cmdline++ = highhex (b23_16); *cmdline++ = lowhex (b23_16);
+	*cmdline++ = highhex (b15_08); *cmdline++ = lowhex (b15_08);
+	*cmdline++ = highhex (b07_00); *cmdline++ = lowhex (b07_00);
+	*cmdline++ = ','; *cmdline++ = '1';
+	*cmdline++ = ' ';
+      }
+
+    if (serial_type () == 0)
+      memcpy (cmdline, "console=ttySC0,115200", 22);
+    else
+      memcpy (cmdline, "console=ttySC1,115200", 22);
   }
 
   asm volatile ("jmp @$r0; nop"
@@ -149,8 +207,59 @@ load_sectors_with_maps (int desc, int offset, unsigned long *buf_p)
   /* There's next map */
   return 0x3000+505;
 }
-
 
+static int
+machine_type (void)
+{
+  register long __sc0 __asm__ ("$r0") = 3; /* FEATURE QUERY */
+
+  asm volatile ("trapa	#0x3F"
+		: "=z" (__sc0)
+		: "0" (__sc0)
+		: "memory");
+
+  return (__sc0 >> 8);
+}
+
+static int
+serial_type (void)
+{
+  register long __sc0 __asm__ ("$r0") = 3; /* FEATURE QUERY */
+
+  asm volatile ("trapa	#0x3F"
+		: "=z" (__sc0)
+		: "0" (__sc0)
+		: "memory");
+
+  return (__sc0 & 0x07);
+}
+
+static int
+memory_size (void)
+{
+  register long __sc0 __asm__ ("$r0") = 4; /* MEMORY SIZE */
+
+  asm volatile ("trapa	#0x3F"
+		: "=z" (__sc0)
+		: "0" (__sc0)
+		: "memory");
+
+  return (__sc0);
+}
+
+static int
+io_base (void)
+{
+  register long __sc0 __asm__ ("$r0") = 5; /* IO BASE */
+
+  asm volatile ("trapa	#0x3F"
+		: "=z" (__sc0)
+		: "0" (__sc0)
+		: "memory");
+
+  return (__sc0);
+}
+
 static void inline
 put_string_1 (unsigned char *str, long len)
 {
@@ -239,19 +348,7 @@ load_sectors (unsigned long sector_desc, unsigned long mem)
   return -1;
 }
 
-static const char hexchars[] = "0123456789abcdef";
-
-char highhex(int  x)
-{
-  return hexchars[(x >> 4) & 0xf];
-}
-
-char lowhex(int  x)
-{
-  return hexchars[x & 0xf];
-}
-
-int
+static void
 printouthex(int x)
 {
   char z[4];
@@ -262,5 +359,4 @@ printouthex(int x)
   z[3] = '\0';
 
   put_string (z);
-  return 0;
 }
