@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.11 2000-08-05 13:07:08 gniibe Exp $
+/* $Id: first.S,v 1.12 2000-08-19 10:16:10 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -44,7 +44,7 @@ start:
 	!
 	.ascii	"LILO"
 	.word	1
-#if 1
+#if 0
 	/* EDIT HERE ! */
 			! Depends LILO's version
 	.word	20
@@ -190,10 +190,11 @@ load_sector_address:
 	bt	1f		! NULL (end of descriptor)
 	!
 	/* Check if it's really LBA... */
-	mov	$r0, $r1
+	mov	$r2, $r0
 	and	#0x0F, $r0	! Get device number
-	mov	#0xc0, $r2
-	cmp/hi	$r1, $r2
+	mov	#0xc0, $r3
+	extu.b	$r3, $r3
+	cmp/hi	$r2, $r3
 	bf	1f		! Unset T
 	!
 	/* It's not LBA!! */

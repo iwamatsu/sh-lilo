@@ -13,7 +13,6 @@ This program may be distributed under GNU GPL.
 Here's lilo.conf which I use:
 ------------------------------
 linear
-compact
 # Cross LILO
 # Actually, it's /dev/hda
 boot = /dev/hdc
@@ -28,8 +27,11 @@ image = /boot/vmlinuz
 	read-only
 ------------------------------
 
-As of SH BIOS 0.3, only LBA access is supported.  So, you must need
+As of SH BIOS 0.5, only LBA access is supported.  So, you must need
 "linear" line.
+
+It is better *not* to add "compact" line.  As SH BIOS doesn't check
+how many multiple sectors can be read, it may not work.
 
 In my cross environment, Compact Flash card is accessed as the device
 /dev/hdc at the host.  This disk is shown as /dev/hda at the target
