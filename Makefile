@@ -23,7 +23,7 @@ first.o: first.S
 	$(CC) -O2 -g -ml -m3 -pipe -c first.S
 
 second.o: second.c
-	$(CC) -O2 -g -ml -m3 -pipe -c second.c
+	$(CC) -O2 -g -ml -m3 -Wall -pipe -c second.c
 
 clean:
 	rm -f *.o boot.b *.exe *.bin
