@@ -154,6 +154,7 @@ done:
 	.align	2
 m4:
 	.string "XXX!\n"
+	.align	2
 
 /*
  * Clobbers: $r0, $r1, $r2, $r3
