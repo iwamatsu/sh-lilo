@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.7 2000-07-19 13:17:36 gniibe Exp $
+/* $Id: first.S,v 1.8 2000-07-20 09:47:23 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -9,7 +9,7 @@
  * This file is subject to the terms and conditions of the GNU General
  * Public License.
  *
- */	
+ */
 
 /*
  * Memory map:
@@ -102,6 +102,7 @@ real_start:
 	!
 	mova	message, $r0
 	mov	$r0, $r4
+	mov	#1, $r5			! So that this works new BIOS
 	mov	#0, $r0			! Serial Output
 	trapa	#0x3f
 	 nop
@@ -154,8 +155,9 @@ load_sector_address:
 	mov	$r1, $r5
 	mov.b	@$r4, $r0
 	cmp/eq	#0, $r0
+	and	#0x0F, $r0	! XXX: Should check > 0xc0
 	rts
-	 mov	#0, $r4		! hard coded now
+	 mov	$r0, $r4	! device number
 
 /*
  * Clobbers $r0
