@@ -1,3 +1,22 @@
+/*
+ *  [ First Loader         ]
+ *  [ First Descriptor     ]
+ *  [ Second Descriptor    ]
+ *  [ Default Command Line ]
+ *  [ Greeting Message     ]
+ *  [ Keyboard Translation ]
+ *  [ Reserved             ]
+ *  [ Reserved             ]
+ *  [ Second Loader (1)    ]
+ *  [ Second Loader (2)    ]
+ *  [ Second Loader (3)    ]
+ *  [ Second Loader (4)    ]
+ *  [ Second Loader (5)    ]
+ *  [ Second Loader (6)    ]
+ *  [ Second Loader (7)    ]
+ *  [ Second Loader (8)    ]
+ *
+ */
 	.global start
 start:
 	bra	real_start
@@ -114,14 +133,14 @@ real_start:
 no_message:
 	add	#2, $r13
 	!
-	mov	#47, $r4	! Keyboad translation table
+	mov	#47, $r4	! Keyboard translation table
 	bsr	load_sector_address	! set $r4 (=dev) and $r5 (=lba)
 	 add	$r12, $r4
 	mov	$r13, $r6
 	shll8	$r6
 	bsr	read_a_sector
 	 add	$r12, $r6
-	add	#8, $r13
+	add	#6, $r13
 	!
 	mov	#52, $r11	! second stage loader
 loop:	mov	$r11, $r4
@@ -191,18 +210,8 @@ read_a_sector:
 	 nop
 	! XXX: should check error
 
-	mova	m2, $r0
-	mov	$r0, $r4
-	mov	#0, $r0			! Serial Output
-	trapa	#0x3f
-	 nop
-
 	rts
 	 nop
-
-	.align	2
-m2:
-	.string "X!\n"
 
 	.align	9
 next:
