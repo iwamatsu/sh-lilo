@@ -1,3 +1,14 @@
+/* $Id: first.S,v 1.5 2000-07-18 12:59:56 gniibe Exp $
+ *
+ *  lilo/arch/sh/first.S
+ *
+ *  Copyright (C) 2000  Niibe Yutaka
+ *
+ * This file is subject to the terms and conditions of the GNU General
+ * Public License.
+ *
+ */	
+
 /*
  *  [ First Loader         ]
  *  [ First Descriptor     ]
