@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.11 2000-07-21 11:21:49 gniibe Exp $
+/* $Id: second.c,v 1.12 2000-07-21 12:11:49 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -110,7 +110,7 @@ start (unsigned long base)
   }
   put_string ("done.\n");
 
-#if 1
+#if 0
   {
     int i;
 
