@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.6 2000-07-20 15:46:42 gniibe Exp $
+/* $Id: second.c,v 1.7 2000-07-20 22:47:07 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -110,6 +110,17 @@ start (unsigned long base)
   }
   put_string ("done.\n");
 
+#if 1
+  {
+    int i;
+
+    put_string ("DUMP: ");
+    for (i=0; i<16; i++)
+      printouthex (*(unsigned char *)(base_pointer+0x10000+i));
+    put_string ("\n");
+  }
+#endif
+
   asm volatile ("jmp @$r0; nop"
 		: /* no output */
 		: "z" (base_pointer + 0x10000));
@@ -122,10 +133,10 @@ put_string_1 (unsigned char *str, long len)
   register long __sc4 __asm__ ("$r4") = (long) str;
   register long __sc5 __asm__ ("$r5") = (long) len; /* For New BIOS */
 
-  asm volatile  ("trapa	#0x3F; nop"
-		 : "=z" (__sc0)
-		 : "0" (__sc0), "r" (__sc4),  "r" (__sc5)
-		 : "memory");
+  asm volatile ("trapa	#0x3F; nop"
+		: "=z" (__sc0)
+		: "0" (__sc0), "r" (__sc4),  "r" (__sc5)
+		: "memory");
 }
 
 static void
@@ -144,11 +155,11 @@ read_sectors (int dev, unsigned long lba, unsigned char *buf, int count)
   register long __sc6 __asm__ ("$r6") = (long) buf;
   register long __sc7 __asm__ ("$r7") = (long) count;
 
-  asm volatile  ("trapa	#0x3F; nop"
-		 : "=z" (__sc0)
-		 : "0" (__sc0), "r" (__sc4),  "r" (__sc5),
-		   "r" (__sc6),  "r" (__sc7)
-		 : "memory");
+  asm volatile ("trapa	#0x3F; nop"
+		: "=z" (__sc0)
+		: "0" (__sc0), "r" (__sc4),  "r" (__sc5),
+		  "r" (__sc6),  "r" (__sc7)
+		: "memory");
 
   return __sc0;
 }
@@ -166,6 +177,22 @@ get_sector_address (unsigned long sector_desc, int *devp, unsigned long *lbap)
   s = p[0] + (p[1]<<8) + (p[3]<<16);
 
   *lbap = s;
+
+#if 1
+  {
+    unsigned long lba = *lbap;
+
+    put_string ("DEV= ");
+    printouthex ((*devp)&0xff);
+    put_string ("\n");
+    put_string ("LBA= ");
+    printouthex ((lba>>24)&0xff);
+    printouthex ((lba>>16)&0xff);
+    printouthex ((lba>>8)&0xff);
+    printouthex (lba&0xff);
+    put_string ("\n");
+  }
+#endif
 
   /* Number of sectors */
   return (int)p[4];
