@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.16 2000-11-26 07:11:58 gniibe Exp $
+/* $Id: first.S,v 1.17 2000-12-25 04:58:51 sugioka Exp $
  *
  * Primary boot loader
  *
@@ -44,7 +44,7 @@ start:
 	!
 	.ascii	"LILO"
 	.word	1
-#if 0
+#if 1
 	/* EDIT HERE ! */
 			! Depends LILO's version
 	.word	20

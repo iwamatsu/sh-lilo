@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.22 2000-11-26 07:11:16 gniibe Exp $
+/* $Id: second.c,v 1.23 2000-12-25 04:58:51 sugioka Exp $
  *
  * Secondary boot loader
  *
@@ -94,12 +94,12 @@ start (unsigned long base)
   put_string ("Loading ");
   put_string ((char *)(base_pointer+0x3200+2)); /* Image name */
 
-  kernel_image = base_pointer + 0x10000;
+  kernel_image = base_pointer + 0x10000 - 0x400;
   {
     int desc = 0x3200+2+16+16+4+5; /* kernel image */
 
     /* Skip two sectors: Fallback command line and options */
-    desc = load_sectors_with_maps (desc, 2, &kernel_image);
+    desc = load_sectors_with_maps (desc, 0, &kernel_image);
     put_string (".");
 
     while (desc != 0)
@@ -126,6 +126,7 @@ start (unsigned long base)
     unsigned long parm = base_pointer - 0x200000 + 0x1000;
     char *cmdline = (char *)(parm+256);
     int mem_size;
+    unsigned char *p;
 
     *(long *)parm      = 1;	/* Read only mount? */
     *(long *)(parm+4)  = 0;	/* RAMDISK Flags */
@@ -136,7 +137,13 @@ start (unsigned long base)
     *(long *)(parm+24) = 0;	/* Not defined yet */
 
     /* XXX: Should take the line from command line sector... */
+#define DC_MAGIC	0xf4f2	/* magic number of default cmd. line sector */
+    p = (unsigned char *)(base_pointer+0x3600);
+    if(p[0] == (DC_MAGIC & 0xff) && p[1] == (DC_MAGIC >> 8))
+      cmdline = string_set(cmdline, p+2);
+    cmdline = string_set(cmdline, (char *)(base_pointer + 0x10000 - 0x200));
 
+#if 0
     /* Query to BIOS and build the command line string */
     /* Build string "mem=XXM" */
     mem_size = memory_size ();    
@@ -190,6 +197,7 @@ start (unsigned long base)
       cmdline = string_set (cmdline, "console=ttySC0,115200");
     else
       cmdline = string_set (cmdline, "console=ttySC1,115200");
+#endif
 
     *cmdline = '\0';		/* Terminate the string */
   }

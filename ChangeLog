@@ -1,3 +1,18 @@
+2000-12-25 SUGIOKA Toshinobu <sugioka@itonet.co.jp>
+
+	* boot.c, boot.h, config.h, bsect.c, bsect.h,
+	cfg.c, cfg.h, common.c, common.h, device.c, device.h,
+	geometry.c, geometry.h, identify.c, identify.h,
+	lilo.c, lilo.h, map.c, map.h, md-int.h, partition.c, partition.h
+	temp.c, temp.h, .cvsignore: New file.
+
+	* Makefile: Add target lilo.
+
+	* first.S: Change LILO versioon code to 20.
+
+	* second.c: (start): Get kernel command line from "append=" in lilo.conf
+	instead of building from BIOS information.
+
 2000-11-26  NIIBE Yutaka  <gniibe@m17n.org>
 
 	* first.S (done): Flush the cache.
