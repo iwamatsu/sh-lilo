@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.23 2000-12-25 04:58:51 sugioka Exp $
+/* $Id: second.c,v 1.24 2001-01-26 02:01:32 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -191,6 +191,9 @@ start (unsigned long base)
       case 3:
 	cmdline = string_set (cmdline, "sh_mv=SolutionEngine ");
 	break;
+      case 4:
+	cmdline = string_set (cmdline, "sh_mv=CAT-68701 ");
+        break;
       }
 
     if (serial_type () == 0)

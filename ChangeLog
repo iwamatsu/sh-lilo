@@ -1,3 +1,7 @@
+2001-01-26  Yutaro Ebihara  <ebiharaml@si-linux.com>
+
+	* second.c (start): Add support for CAT 68701.
+
 2000-12-25 SUGIOKA Toshinobu <sugioka@itonet.co.jp>
 
 	* boot.c, boot.h, config.h, bsect.c, bsect.h,
