@@ -4,3 +4,4 @@ select a image
 list up images
 setup kernel arguments
 support initrd
+Use of LED (for status?)
