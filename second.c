@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.7 2000-07-20 22:47:07 gniibe Exp $
+/* $Id: second.c,v 1.8 2000-07-20 23:25:16 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -77,7 +77,7 @@ start (unsigned long base)
   put_string ("Loading ");
   put_string ((char *)(base_pointer+0x3200+2)); /* Image name */
 
-  kernel_image = base_pointer + 0x10000;
+  kernel_image = base_pointer + 0x10000 - 0x200*2; /* Magic 2 sectors */
   {
     int dev;
     unsigned long lba;
@@ -110,7 +110,7 @@ start (unsigned long base)
   }
   put_string ("done.\n");
 
-#if 1
+#if 0
   {
     int i;
 
@@ -178,7 +178,7 @@ get_sector_address (unsigned long sector_desc, int *devp, unsigned long *lbap)
 
   *lbap = s;
 
-#if 1
+#if 0
   {
     unsigned long lba = *lbap;
 
