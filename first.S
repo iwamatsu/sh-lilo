@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.13 2000-08-19 11:19:32 gniibe Exp $
+/* $Id: first.S,v 1.14 2000-09-09 12:37:25 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -127,6 +127,7 @@ real_start:
 	!
 	/* Enable cache */
 	mov	#6, $r0			! Cache "on"
+	mov	#0, $r4
 	trapa	#0x3f
 	!
 	/* Output message "L" */
