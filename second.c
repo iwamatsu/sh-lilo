@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.10 2000-07-21 10:58:47 gniibe Exp $
+/* $Id: second.c,v 1.11 2000-07-21 11:21:49 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -110,13 +110,13 @@ start (unsigned long base)
   }
   put_string ("done.\n");
 
-#if 0
+#if 1
   {
     int i;
 
     put_string ("DUMP: ");
     for (i=0; i<16; i++)
-      printouthex (*(unsigned char *)(base_pointer+0x10000+i));
+      printouthex (*(unsigned char *)(base_pointer+0x10400+i));
     put_string ("\n");
   }
 #endif
@@ -147,7 +147,7 @@ put_string_1 (unsigned char *str, long len)
   register long __sc4 __asm__ ("$r4") = (long) str;
   register long __sc5 __asm__ ("$r5") = (long) len; /* For New BIOS */
 
-  asm volatile ("trapa	#0x3F; nop"
+  asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
 		: "0" (__sc0), "r" (__sc4),  "r" (__sc5)
 		: "memory");
@@ -169,7 +169,7 @@ read_sectors (int dev, unsigned long lba, unsigned char *buf, int count)
   register long __sc6 __asm__ ("$r6") = (long) buf;
   register long __sc7 __asm__ ("$r7") = (long) count;
 
-  asm volatile ("trapa	#0x3F; nop"
+  asm volatile ("trapa	#0x3F"
 		: "=z" (__sc0)
 		: "0" (__sc0), "r" (__sc4),  "r" (__sc5),
 		  "r" (__sc6),  "r" (__sc7)

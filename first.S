@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.8 2000-07-20 09:47:23 gniibe Exp $
+/* $Id: first.S,v 1.9 2000-07-21 11:21:40 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -105,7 +105,6 @@ real_start:
 	mov	#1, $r5			! So that this works new BIOS
 	mov	#0, $r0			! Serial Output
 	trapa	#0x3f
-	 nop
 	!
 	mov	#52, $r11		! Second stage loader
 loop:	mov	$r11, $r4
@@ -166,7 +165,6 @@ read_a_sector:
 	mov	#2, $r0			! READ SECTORS
 	mov	#1, $r7			! number of sectors
 	trapa	#0x3f
-	 nop
 	! XXX: should check error
 
 	rts

@@ -17,7 +17,7 @@ first.exe: first.o
 	$(LD) -EL -e start first.o -o first.exe -Ttext 0xac200000
 
 second.exe: second.o string.o
-	$(LD) -T second.lds -EL -e start second.o string.o -o second.exe -Ttext 0xac201000
+	$(LD) -T second.lds -EL second.o string.o -o second.exe -Ttext 0xac201000
 
 first.o: first.S
 	$(CC) -O2 -g -ml -m3 -pipe -c first.S
