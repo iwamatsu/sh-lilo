@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.5 2000-07-20 12:02:55 gniibe Exp $
+/* $Id: second.c,v 1.6 2000-07-20 15:46:42 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -45,7 +45,9 @@ start (unsigned long base)
   load_sectors (SD_KBDTBL, 0x3800);
   put_string ("O ");
 
+#if 0
   load_sectors (SD_MSG, 0x3a00);
+#endif
   /* XXX: delay, key check... */
   /* XXX: list up images */
   /* XXX: check signature */
@@ -62,7 +64,7 @@ start (unsigned long base)
    [ DESCR_SIZE:52-byte
       (image-name (16-byte)
        passwd     (16-byte)
-       rd_size    (32-bit)
+       rd_size    (4-byte)
        initrd     (5-byte sector desc)
        start      (5-byte sector desc)
        start_page (16-bit)
@@ -72,37 +74,37 @@ start (unsigned long base)
    ] * 19
   */
 
+  put_string ("Loading ");
   put_string ((char *)(base_pointer+0x3200+2)); /* Image name */
 
   kernel_image = base_pointer + 0x10000;
   {
     int dev;
     unsigned long lba;
-    int desc = 0x3200+2+16+16+4+5; /* kernel */
+    unsigned long desc = 0x3200+2+16+16+4+5; /* kernel image */
 
     while (desc != 0)
       {
-	if (get_sector_address (desc, &dev, &lba) != 0)
+	int i, count;
+
+	if (load_sectors (desc, 0x3000) < 0)
+	  break;
+
+	for (i=0; i<505; i+=5)
 	  {
-	    int i, count;
-	    read_sectors (dev, lba, (unsigned char *)base_pointer+0x3000, 1);
-	    for (i=0; i<505; i+=5)
+	    if ((count = get_sector_address (0x3000+i, &dev, &lba)) == 0)
 	      {
-		if ((count = get_sector_address (0x3000+i, &dev, &lba)) == 0)
-		  {
-		    desc = 0;
-		    break;
-		  }
-		read_sectors (dev, lba, (unsigned char *)kernel_image, count);
-		kernel_image += count*512;
+		desc = 0;
+		break;
 	      }
-	    if (desc)
-	      desc = 0x3000+i;
+
+	    read_sectors (dev, lba, (unsigned char *)kernel_image, count);
+	    kernel_image += count*512;
 	  }
-	else
-	  {
-	    put_string ("???\n");
-	  }
+
+	if (desc)
+	  desc = 0x3000+505;
+
 	put_string (".");
       }
   }
@@ -113,17 +115,24 @@ start (unsigned long base)
 		: "z" (base_pointer + 0x10000));
 }
 
-static void
-put_string (unsigned char *str)
+static void inline
+put_string_1 (unsigned char *str, long len)
 {
   register long __sc0 __asm__ ("$r0") = 0; /* OUTPUT */
   register long __sc4 __asm__ ("$r4") = (long) str;
-  register long __sc5 __asm__ ("$r5") = (long) strlen (str); /* For New BIOS */
+  register long __sc5 __asm__ ("$r5") = (long) len; /* For New BIOS */
 
   asm volatile  ("trapa	#0x3F; nop"
 		 : "=z" (__sc0)
 		 : "0" (__sc0), "r" (__sc4),  "r" (__sc5)
 		 : "memory");
+}
+
+static void
+put_string (unsigned char *str)
+{
+  int len = strlen (str);
+  put_string_1 (str, len);
 }
 
 static int
@@ -172,5 +181,34 @@ load_sectors (unsigned long sector_desc, unsigned long mem)
 
   count = get_sector_address (sector_desc, &dev, &lba);
 
-  return read_sectors (dev, lba, buf, count);
+  if (count)
+    return read_sectors (dev, lba, buf, count);
+
+  return -1;
+}
+
+static const char hexchars[] = "0123456789abcdef";
+
+char highhex(int  x)
+{
+  return hexchars[(x >> 4) & 0xf];
+}
+
+char lowhex(int  x)
+{
+  return hexchars[x & 0xf];
+}
+
+int
+printouthex(int x)
+{
+  char z[4];
+
+  z[0] = highhex (x);
+  z[1] = lowhex (x);
+  z[2] = ' ';
+  z[3] = '\0';
+
+  put_string (z);
+  return 0;
 }
