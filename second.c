@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.4 2000-07-20 11:40:23 gniibe Exp $
+/* $Id: second.c,v 1.5 2000-07-20 12:02:55 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -14,7 +14,7 @@
 #include "defs.h"
 
 static void put_string (unsigned char *);
-static int get_sector_address (unsigned long, int *, unsigned long);
+static int get_sector_address (unsigned long, int *, unsigned long *);
 static int load_sectors (unsigned long, unsigned long);
 static int read_sectors (int, unsigned long, unsigned char *, int);
 
@@ -85,7 +85,7 @@ start (unsigned long base)
 	if (get_sector_address (desc, &dev, &lba) != 0)
 	  {
 	    int i, count;
-	    read_sectors (dev, lba, base_pointer+0x3000, 1);
+	    read_sectors (dev, lba, (unsigned char *)base_pointer+0x3000, 1);
 	    for (i=0; i<505; i+=5)
 	      {
 		if ((count = get_sector_address (0x3000+i, &dev, &lba)) == 0)
@@ -93,7 +93,7 @@ start (unsigned long base)
 		    desc = 0;
 		    break;
 		  }
-		read_sectors (dev, lba, kernel_image, count);
+		read_sectors (dev, lba, (unsigned char *)kernel_image, count);
 		kernel_image += count*512;
 	      }
 	    if (desc)
@@ -118,7 +118,7 @@ put_string (unsigned char *str)
 {
   register long __sc0 __asm__ ("$r0") = 0; /* OUTPUT */
   register long __sc4 __asm__ ("$r4") = (long) str;
-  register long __sc5 __asm__ ("$r5") = (long) strlen(str); /* For New BIOS */
+  register long __sc5 __asm__ ("$r5") = (long) strlen (str); /* For New BIOS */
 
   asm volatile  ("trapa	#0x3F; nop"
 		 : "=z" (__sc0)
