@@ -3,7 +3,7 @@ This is SuperH boot.b for LILO.
 You can use this program with LILO as /boot/boot.b.
 This program may be distributed under GNU GPL.
 
-					Niibe Yutaka
+					Niibe Yutaka  <gniibe@m17n.org>
 					Nezu Bunkyo-ku Tokyo
 					JAPAN
 					July 2000
