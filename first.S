@@ -77,6 +77,12 @@ d_addr:				! second stage sector addresses
 
 	.align	2
 real_start:
+	mova	message, $r0
+	mov	$r0, $r4
+	mov	#0, $r0			! Serial Output
+	trapa	#0x3f
+	 nop
+	!
 	mova	next, $r0
 	mov	#0x02, $r1
 	shll8	$r1
@@ -130,6 +136,18 @@ real_start:
 	shll8	$r6
 	bsr	read_a_sector
 	 add	$r12, $r6
+#if 0
+	!
+	! XXX: Do we output message here?  Is it a work of second loader?
+	!
+	mov	#8, $r4
+	shll8	$r4
+	add	$r12, $r4
+	mov	#0, $r0			! Serial Output
+	trapa	#0x3f
+	 nop
+#endif
+
 no_message:
 	add	#2, $r13
 	!
@@ -156,13 +174,6 @@ loop:	mov	$r11, $r4
 	 add	#5, $r11
 
 done:
-	mova	m4, $r0
-	mov	$r0, $r4
-	mov	#0, $r0			! Serial Output
-	trapa	#0x3f
-	 nop
-	!
-
 	! jump to the second loader
 	mov	#16, $r0
 	shll8	$r0
@@ -171,10 +182,10 @@ done:
 	 nop
 
 	.align	2
-m4:
-	.string "XXX!\n"
-	.align	2
+message:
+	.string "L\n"
 
+	.align	2
 /*
  * Clobbers: $r0, $r1, $r2, $r3
  * INPUT: $r4 (pointer to descripter (5-byte long, not aligned)
@@ -215,28 +226,3 @@ read_a_sector:
 
 	.align	9
 next:
-2:
-	mov	#6, $r1
-	mov.l	led2, $r2
-	mov.b	$r1, @$r2
-
-	mova	message2, $r0
-	mov	$r0, $r4
-	mov	#0, $r0			! Serial Output
-	trapa	#0x3f
-	 nop
-	mov	#127, $r0
-	shll8	$r0
-	shll8	$r0
-	tst	$r0, $r0
-1:
-	bf/s	1b
-	 dt	$r0
-	bra	2b
-	 nop
-
-	.align	2
-message2:
-	.string "Hello World!!\n"
-	.align	2
-led2:	.long	0xa8000000
