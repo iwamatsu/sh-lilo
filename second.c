@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.21 2000-11-25 14:05:57 gniibe Exp $
+/* $Id: second.c,v 1.22 2000-11-26 07:11:16 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -23,6 +23,7 @@ static int machine_type (void);
 static int serial_type (void);
 static int memory_size (void);
 static int io_base (void);
+static void cache_flush (void);
 
 static const char hexchars[] = "0123456789abcdef";
 #define digits hexchars		/* 10base is same for 16base (up to 10) */
@@ -193,6 +194,7 @@ start (unsigned long base)
     *cmdline = '\0';		/* Terminate the string */
   }
 
+  cache_flush ();
   asm volatile ("jmp @r0; nop"
 		: /* no output */
 		: "z" (base_pointer + 0x10000));
@@ -272,6 +274,18 @@ io_base (void)
 		: "memory");
 
   return (__sc0);
+}
+
+static void
+cache_flush (void)
+{
+  register long __sc0 __asm__ ("r0") = 6; /* CACHE_CONTROL */
+  register long __sc4 __asm__ ("r4") = 0; /* ENABLE */
+
+  asm volatile ("trapa	#0x3F"
+		: "=z" (__sc0)
+		: "0" (__sc0), "r" (__sc4)
+		: "memory");
 }
 
 static void inline

@@ -1,4 +1,4 @@
-/* $Id: first.S,v 1.15 2000-11-25 14:08:39 gniibe Exp $
+/* $Id: first.S,v 1.16 2000-11-26 07:11:58 gniibe Exp $
  *
  * Primary boot loader
  *
@@ -154,6 +154,11 @@ loop:	mov	r11, r4
 	 add	#5, r11	! next desc# is +5
 
 done:
+	/* Flush cache */
+	mov	#6, r0			! Cache "on"
+	mov	#0, r4
+	trapa	#0x3f
+
 	/* Jump to the second loader */
 	mov	#0x10, r0
 	shll8	r0
