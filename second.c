@@ -1,4 +1,4 @@
-/* $Id: second.c,v 1.18 2000-08-19 10:33:26 gniibe Exp $
+/* $Id: second.c,v 1.19 2000-08-19 10:34:50 gniibe Exp $
  *
  * Secondary boot loader
  *
@@ -189,8 +189,9 @@ start (unsigned long base)
       cmdline = string_set (cmdline, "console=ttySC0,115200");
     else
       cmdline = string_set (cmdline, "console=ttySC1,115200");
+
+    *cmdline = '\0';		/* Terminate the string */
   }
-  *cmdline = '\0';		/* Terminate the string */
 
   asm volatile ("jmp @$r0; nop"
 		: /* no output */
