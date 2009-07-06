@@ -104,9 +104,11 @@ void check_version(BOOT_SECTOR *sect,int stage)
 	die("%s doesn't have a valid LILO signature",name(stage));
     if (sect->par_1.stage != stage)
 	die("%s has an invalid stage code (%d)",name(stage),sect->par_1.stage);
+#if 0
     if (sect->par_1.version != VERSION)
 	die("%s is version %d. Expecting version %d.",name(stage),
 	  sect->par_1.version,VERSION);
+#endif
 }
 
 
