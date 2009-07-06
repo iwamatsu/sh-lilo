@@ -20,10 +20,11 @@
 #include "cfg.h"
 #include "device.h"
 #include "geometry.h"
+#include "partition.h"
 
 
 /* For older kernels ... */
- 
+/* 
 #ifndef DOS_EXTENDED_PARTITION
 #define DOS_EXTENDED_PARTITION EXTENDED_PARTITION
 #endif
@@ -31,7 +32,7 @@
 #ifndef LINUX_EXTENDED_PARTITION
 #define LINUX_EXTENDED_PARTITION EXTENDED_PARTITION
 #endif
-
+*/
 
 void part_verify(int dev_nr,int type)
 {
