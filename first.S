@@ -67,11 +67,13 @@ tstamp:	.long	0
 d1_cx:	.word	0
 d1_dx:	.word	0
 d1_al:	.byte	0
+.align 1
 
 /* Second descripter sector (Filled by LILO command) */
 d2_cx:	.word	0
 d2_dx:	.word	0
 d2_al:	.byte	0
+.align 1
 
 /* Default command-line sector (Filled by LILO command) */
 dc_cx:	.word	0
@@ -87,11 +89,13 @@ ms_len:	.word	0		! initial greeting message
 ms_cx:	.word	0
 ms_dx:	.word	0
 ms_al:	.byte	0
+.align 1
 
 /* Second descripter sector (Filled by LILO command) */
 kt_cx:	.word	0		! keyboard translation table
 kt_dx:	.word	0
 kt_al:	.byte	0
+.align 1
 
 d_addr:				! second stage sector addresses
 
