@@ -50,8 +50,10 @@ start:
 	.word	20
 #else
 		      /* v--- Major Version */
-	.word	4*256 + 21
-	!    /* ^--- Minor Version*/     
+	.word	4*256 + 21 /* for 21.4 */
+	!    /* ^--- Minor Version*/
+	! .word	7*256 + 21 /* for 21.7 */
+	!.word	8*256 + 22 /* for 22.8 */
 #endif
 
 /* x86 LILO parameters (Not used for SuperH... yet) */
