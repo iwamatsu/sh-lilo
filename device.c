@@ -169,7 +169,7 @@ void dev_close(DEVICE *dev)
 
 void preload_dev_cache(void)
 {
-    char tmp[10];
+    char tmp[11];
     int i;
 
     cache_add("/dev/hda",0x300);
