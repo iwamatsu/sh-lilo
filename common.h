@@ -8,7 +8,7 @@
 
 #include <sys/stat.h>
 #include <asm/types.h>
-#include <linux/genhd.h>
+#include <linux/kdev_t.h>
 
 #include "lilo.h"
 
