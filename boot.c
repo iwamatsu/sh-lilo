@@ -40,6 +40,7 @@ void boot_image(char *spec,IMAGE_DESCR *descr)
     char *initrd;
     int setup,fd,sectors;
     int modern_kernel;
+	int page_size = getpagesize();
 
     if (verbose > 0) printf("Boot image: %s\n",spec);
     fd = geo_open(&geo,spec,O_RDONLY);
@@ -52,24 +53,26 @@ void boot_image(char *spec,IMAGE_DESCR *descr)
     setup = SETUPSECS;
 #endif
     if (read(fd,(char *) &hdr,sizeof(hdr)) != sizeof(hdr))
-	die("read %s: %s",spec,strerror(errno));
-    modern_kernel = !strncmp(hdr.signature,NEW_HDR_SIG,4) && hdr.version >=
-      NEW_HDR_VERSION;
-    if (modern_kernel) descr->flags |= FLAG_MODKRN;
+		die("read %s: %s",spec,strerror(errno));
+
+    modern_kernel = 
+		(!strncmp(hdr.signature,NEW_HDR_SIG,4) && hdr.version >= NEW_HDR_VERSION);
+    if (modern_kernel)
+		descr->flags |= FLAG_MODKRN;
     if (verbose > 1)
-	printf("Setup length is %d sector%s.\n",setup,setup == 1 ? "" : "s");
+		printf("Setup length is %d sector%s.\n",setup,setup == 1 ? "" : "s");
     map_add(&geo,0,(st.st_size+SECTOR_SIZE-1)/SECTOR_SIZE);
     sectors = map_end_section(&descr->start,setup+SPECIAL_SECTORS);
     if (!modern_kernel || !(hdr.flags & LFLAG_HIGH))
-	check_size(spec,setup,sectors);
+		check_size(spec,setup,sectors);
     else {
-	if (hdr.start % PAGE_SIZE)
-	    die("Can't load kernel at mis-aligned address 0x%08lx\n",hdr.start);
-	descr->start_page = hdr.start/PAGE_SIZE; /* load kernel high */
+		if (hdr.start % page_size)
+	    	die("Can't load kernel at mis-aligned address 0x%08lx\n",hdr.start);
+		descr->start_page = hdr.start/page_size; /* load kernel high */
     }
     geo_close(&geo);
     if (verbose > 1)
-	printf("Mapped %d sector%s.\n",sectors,sectors == 1 ? "" : "s");
+		printf("Mapped %d sector%s.\n",sectors,sectors == 1 ? "" : "s");
     if ((initrd = cfg_get_strg(cf_kernel,"initrd")) || (initrd = cfg_get_strg(
       cf_options,"initrd"))) {
 	if (!modern_kernel) die("Kernel doesn't support initial RAM disks");

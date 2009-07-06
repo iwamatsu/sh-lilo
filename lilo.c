@@ -11,8 +11,6 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include <asm/page.h>
-
 #include "config.h"
 #include "common.h"
 #include "lilo.h"
@@ -154,7 +152,7 @@ static void show_images(char *map_file)
 			printf("    Kernel is loaded \"low\"\n");
 		    else printf("    Kernel is loaded \"high\", at 0x%08lx\n",
 			  (unsigned long) descrs.d.descr[image].start_page*
-			  PAGE_SIZE);
+			  getpagesize());
 		    if (!*(unsigned long *) descrs.d.descr[image].rd_size)
 			printf("    No initial RAM disk\n");
 		    else printf("    Initial RAM disk is %ld bytes\n",
