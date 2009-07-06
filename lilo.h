@@ -16,12 +16,6 @@
  * definitions into asm/boot.h instead of linux/config.h
  */
 
-#ifdef HAS_BOOT_H
-#include <asm/boot.h>
-#else
-#include <linux/config.h>
-#endif
-
 #define VERSION		20 /* Boot sector, map file, and chain loader format
 			      revision. This number does not necessarily have
 			      to correspond to the version number of the entire
